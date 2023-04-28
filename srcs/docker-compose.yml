@@ -1,0 +1,49 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:syamashi
+    build:
+      context: ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - data:/home/user/data
+    env_file:
+      - .env
+    networks:
+      - wordpress-network
+  wordpress:
+    image: wordpress:syamashi
+    build:
+      context: ./wordpress
+    container_name: wordpress
+    restart: always
+    expose:
+      - 9000
+    volumes:
+      - data:/home/user/data
+    env_file:
+      - .env
+    networks:
+      - wordpress-network
+  db:
+    image: mariadb:syamashi
+    build:
+      context: ./mariadb
+    container_name: db
+    restart: always
+    volumes:
+      - db_data:/var/lib/mysql
+    env_file:
+      - .env
+    networks:
+      - wordpress-network
+networks:
+  wordpress-network:
+    driver: bridge
+volumes:
+  data:
+  db_data:
