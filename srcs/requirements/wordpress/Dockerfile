@@ -37,23 +37,21 @@ RUN apk add --no-cache \
     && mv wp-cli.phar /usr/local/bin/wp
 
 # WordPressのインストール
-ENV WORDPRESS_VERSION 5.8.3
-# RUN set -ex \
-#     && mkdir -p /usr/src/wordpress \
-#     && cd /usr/src \
-#     && wp core download --version="${WORDPRESS_VERSION}" --locale=ja \
-#     && chown -R nobody:nobody /usr/src/wordpress
-# 
-# # WordPressの設定
-# COPY ./conf/wp-config.php /usr/src/wordpress/
-# 
-# # ディレクトリのパーミッション設定
-# RUN chown -R nobody:nobody /usr/src/wordpress \
-#     && chmod -R 777 /usr/src/wordpress/wp-content
-# 
-# # PHP-FPMの設定
-# COPY ./conf/php-fpm.conf /etc/php8/php-fpm.conf
-# COPY ./conf/www.conf /etc/php8/php-fpm.d/www.conf
-# 
-# # コンテナ起動時にPHP-FPMを起動する
-# CMD ["php-fpm8", "-F"]
+ENV WORDPRESS_VERSION 6.2
+RUN set -ex \
+    && mkdir -p /var/www/html/wordpress \
+    && wp core download --version="${WORDPRESS_VERSION}" --locale=ja --allow-root --path=/var/www/html/wordpress\
+    && chown -R nobody:nobody /var/www/html/wordpress
+
+# WordPressの設定
+COPY ./conf/wp-config.php /var/www/html/wordpress
+
+# ディレクトリのパーミッション設定
+RUN chmod -R 777 /var/www/html/wordpress
+
+# PHP-FPMの設定
+COPY ./conf/php-fpm.conf /etc/php8/php-fpm.conf
+COPY ./conf/www.conf /etc/php8/php-fpm.d/www.conf
+
+# コンテナ起動時にPHP-FPMを起動する
+CMD ["php-fpm8", "-F"]
