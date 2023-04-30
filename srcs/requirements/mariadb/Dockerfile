@@ -1,4 +1,4 @@
-FROM alpine:3.14.10
+FROM debian:buster
 
 RUN apk add --no-cache mariadb mariadb-client
 
