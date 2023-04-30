@@ -1,15 +1,15 @@
-version: '3.5'
+version: '3'
 services:
   nginx:
     image: nginx:syamashi
     build:
-      context: ./nginx # Dockerfileのあるディレクトリを指定
+      context: ./requirements/nginx # Dockerfileのあるディレクトリを指定
     container_name: nginx
     restart: always
     ports:
       - "443:443"
     volumes:
-      - /home/user42/Desktop/data/wordpress:/home/user/data/wp_data
+      - web:/home/user/data/wp_data
     env_file:
       - .env
     networks:
@@ -17,13 +17,13 @@ services:
   wordpress:
     image: wordpress:syamashi
     build:
-      context: ./wordpress
+      context: ./requirements/wordpress
     container_name: wordpress
     restart: always
     expose:
       - 9000
     volumes:
-      - /home/user42/Desktop/data/wordpress:/home/user/data/wp_data
+      - web:/home/user/data/wp_data
     env_file:
       - .env
     networks:
@@ -31,11 +31,11 @@ services:
   db:
     image: mariadb:syamashi
     build:
-      context: ./mariadb
+      context: ./requirements/mariadb
     container_name: db
     restart: always
     volumes:
-      - /home/user42/Desktop/data/mysql:/var/lib/mysql
+      - db:/var/lib/mysql
     env_file:
       - .env
     networks:
@@ -43,3 +43,15 @@ services:
 networks:
   inception-network:
     driver: bridge
+
+volumes:
+  db:
+    driver_opts:
+      type: local
+      device: ${VOLUME_DB}
+      o: bind
+  web:
+    driver_opts:
+      type: local
+      device: ${VOLUME_WEB}
+      o: bind
