@@ -13,7 +13,7 @@ RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
     -subj "/C=JP/ST=Tokyo/L=hoge/O=fuga/OU=foo/CN=localhost"
 
 # copy the nginx configuration file
-COPY ./conf/nginx.conf /etc/nginx/nginx.conf
+COPY ./conf/default.conf /etc/nginx/conf.d/default.conf
 
 # set permissions for nginx user
 RUN adduser -D -g 'www' www && \

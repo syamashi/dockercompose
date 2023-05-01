@@ -1,0 +1,23 @@
+version: '3'
+services:
+  db:
+    image: mariadb:syamashi
+    build:
+      context: ./requirements/mariadb
+    container_name: db
+    restart: always
+    volumes:
+      - db:/var/lib/mysql
+    env_file:
+      - .env
+    networks:
+      - inception-network
+networks:
+  inception-network:
+
+volumes:
+  db:
+    driver_opts:
+      type: local
+      device: ${VOLUME_DB}
+      o: bind

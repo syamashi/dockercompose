@@ -9,7 +9,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      - web:/home/user/data/wp_data
+      - web:/var/www/html
     env_file:
       - .env
     networks:
@@ -21,18 +21,20 @@ services:
     container_name: wordpress
     restart: always
     expose:
-      - 9000
+      - "9000"
     volumes:
-      - web:/home/user/data/wp_data
+      - web:/var/www/html
     env_file:
       - .env
     networks:
       - inception-network
-  db:
+    depends_on:
+      - mariadb
+  mariadb:
     image: mariadb:syamashi
     build:
       context: ./requirements/mariadb
-    container_name: db
+    container_name: mariadb
     restart: always
     volumes:
       - db:/var/lib/mysql
@@ -42,7 +44,6 @@ services:
       - inception-network
 networks:
   inception-network:
-    driver: bridge
 
 volumes:
   db:
