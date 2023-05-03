@@ -1,49 +1,71 @@
 version: '3'
+
 services:
   nginx:
-    image: nginx:syamashi
-    build:
-      context: ./requirements/nginx # Dockerfileのあるディレクトリを指定
+    depends_on:
+      - wordpress
+    build: ./requirements/nginx
     container_name: nginx
-    restart: always
+    volumes:
+      - web:/var/www/html
+    networks:
+      - public
     ports:
       - "443:443"
-    volumes:
-      - web:/var/www/html
-    env_file:
-      - .env
-    networks:
-      - inception-network
-  wordpress:
-    image: wordpress:syamashi
-    build:
-      context: ./requirements/wordpress
-    container_name: wordpress
     restart: always
-    expose:
-      - "9000"
-    volumes:
-      - web:/var/www/html
-    env_file:
-      - .env
-    networks:
-      - inception-network
+  wordpress:
     depends_on:
       - mariadb
+    build: ./requirements/wordpress
+    container_name: wordpress
+    volumes:
+      - web:/var/www/html
+    networks:
+      - public
+      - private
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      MYSQL_HOST: ${MYSQL_HOST}
+      WP_DB_NAME: ${WP_DB_NAME}
+      WP_DB_USER: ${WP_DB_USER}
+      WP_DB_PASSWORD: ${WP_DB_PASSWORD}
+      WP_TITLE: ${WP_TITLE}
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      WP_USER: ${WP_USER}
+      WP_PASSWORD: ${WP_PASSWORD}
+      WP_EMAIL: ${WP_EMAIL}
+      WP_FILE_ONINSTALL: ${WP_FILE_ONINSTALL}
   mariadb:
-    image: mariadb:syamashi
-    build:
-      context: ./requirements/mariadb
+    build: ./requirements/mariadb
     container_name: mariadb
-    restart: always
     volumes:
       - db:/var/lib/mysql
-    env_file:
-      - .env
     networks:
-      - inception-network
+      - private
+    restart: always
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      WP_DB_NAME: ${WP_DB_NAME}
+      WP_DB_USER: ${WP_DB_USER}
+      WP_DB_PASSWORD: ${WP_DB_PASSWORD}
+  adminer:
+    build: requirements/bonus/adminer
+    container_name: adminer
+    restart: always
+    depends_on:
+      - mariadb
+      - wordpress
+    ports:
+      - "8080:8080"
+    networks:
+      - private
+
 networks:
-  inception-network:
+  public:
+  private:
 
 volumes:
   db:

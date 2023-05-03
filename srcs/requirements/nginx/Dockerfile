@@ -1,28 +1,18 @@
-FROM alpine:3.16
+FROM alpine:3.14
 
-# update packages
-RUN apk update && apk upgrade
+RUN apk update && apk upgrade && apk add --no-cache \
+  nginx \
+  openssl
 
-# install nginx and openssl
-RUN apk add --no-cache nginx openssl
-
-# generate a self-signed SSL certificate
+# open ssl certificate
+RUN mkdir /etc/nginx/ssl
 RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
-    -out /etc/ssl/ft_inception.crt \
-    -keyout /etc/ssl/ft_inception.key \
-    -subj "/C=JP/ST=Tokyo/L=hoge/O=fuga/OU=foo/CN=localhost"
+  -out /etc/nginx/ssl/inception.crt \
+  -keyout /etc/nginx/ssl/inception.key \
+  -subj "/C=JP/ST=Tokyo/L=city/O=42tokyo/CN=syamashi.42.fr"
 
-# copy the nginx configuration file
-COPY ./conf/default.conf /etc/nginx/conf.d/default.conf
+# nginx
+RUN mkdir -p /run/nginx
+COPY ./conf/default.conf /etc/nginx/http.d/default.conf
 
-# set permissions for nginx user
-RUN adduser -D -g 'www' www && \
-    mkdir /www && \
-    chown -R www:www /var/lib/nginx && \
-    chown -R www:www /www
-
-# expose ports
-EXPOSE 443
-
-# set entry point
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,8 +1,8 @@
 FROM alpine:3.16
 
-# 必要なパッケージのインストール
 # https://make.wordpress.org/hosting/handbook/server-environment/
-RUN apk add --no-cache \
+# https://pkgs.org/
+RUN apk update && apk upgrade && apk add --no-cache \
   php8 \
   php8-fpm \
   php8-mysqli \
@@ -29,28 +29,23 @@ RUN apk add --no-cache \
   bash \
   less
 
-# WP-CLIのインストール
-RUN apk add --no-cache \
-  && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+RUN adduser -S nginx && addgroup -S nginx
+# fastcgiの処理に関連する設定
+COPY ./conf/php-fpm.conf /etc/php8/php-fpm.conf
+COPY ./conf/www.conf /etc/php8/php-fpm.d/www.conf
+
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
   && chmod +x wp-cli.phar \
   && mv wp-cli.phar /usr/local/bin/wp \
   && chmod +x /usr/local/bin/wp
 
-# WordPressのインストール
-RUN set -ex \
-  && mkdir -p /var/www/html/wordpress \
-  && chown -R nobody:nobody /var/www/html/wordpress
+COPY ./tools/setup.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/setup.sh
 
-# WordPressの設定
-COPY ./tools/startup.sh /startup.sh
+COPY ./tools/wordpress-6.2.tar.gz /tmp/
+COPY ./tools/index.html /tmp/
+RUN chmod -R 777 /tmp/
 
-# ディレクトリのパーミッション設定
-RUN chmod -R 777 /var/www/html/wordpress
-RUN chmod 777 /startup.sh
+ENTRYPOINT [ "setup.sh" ]
 
-# PHP-FPMの設定
-COPY ./conf/php-fpm.conf /etc/php8/php-fpm.conf
-COPY ./conf/www.conf /etc/php8/php-fpm.d/www.conf
-
-# コンテナ起動時にPHP-FPMを起動する
-CMD ["/startup.sh"]
+CMD [ "php-fpm8", "--nodaemonize" ]
