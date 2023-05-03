@@ -3,7 +3,7 @@
 # wait until database is ready
 while ! mariadb -h$MYSQL_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME --silent; do
 	echo "[i] waiting database connection..."
-	sleep 5;
+	sleep 10;
 done
 
 # check if wordpress is installed
